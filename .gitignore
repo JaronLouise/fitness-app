@@ -41,4 +41,5 @@ Thumbs.db
 .idea/datasources.xml
 .idea/dataSources.ids
 
-*.env
+backend/.env
+.vscode/settings.json
