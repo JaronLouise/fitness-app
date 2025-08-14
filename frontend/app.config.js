@@ -32,7 +32,9 @@ export default {
       "expo-router"
     ],
     extra: {
-      SUPABASE_URL: process.env.LOCAL_IP
+      LOCAL_IP: process.env.LOCAL_IP,
+      SUPABASE_URL: process.env.SUPABASE_URL,
+      SUPABASE_KEY: process.env.SUPABASE_KEY
     }
   }
 };

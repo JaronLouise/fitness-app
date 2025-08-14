@@ -14,6 +14,10 @@ import {
   ActivityIndicator
 } from 'react-native';
 import Constants from 'expo-constants';
+import 'react-native-url-polyfill/auto';
+import 'react-native-get-random-values';
+import { supabase } from '../backend/config/supabase.js';
+
 
 const IP_ADDRESS = Constants.expoConfig.extra.LOCAL_IP;
 const LoginScreen = () => {
@@ -36,19 +40,16 @@ const LoginScreen = () => {
     setIsLoading(true);
     console.log(JSON.stringify({ email, password }));
     try {
-      const response = await fetch(`http://${IP_ADDRESS}:5000/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
 
-    const result = await response.json();
-
-    if (result.error) {
-      Alert.alert('Error', result.error);
+    if (error) {
+      Alert.alert('Error', error.message);
     } else {
       Alert.alert('Success', 'Login successful!');
-      console.log(result);
+      console.log(data);
     }
 
       // Reset form
