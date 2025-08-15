@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import React, { useState } from 'react';
 import { router } from 'expo-router';
+import { supabase } from '../../backend/config/supabase.js';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -87,20 +88,25 @@ const SignUp = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Here you would typically make an API call to create account
-      console.log('SignUp attempt:', formData);
-      
-      Alert.alert(
-        'Success', 
-        'Account created successfully!',
-        [
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+          },
+        },
+      });
+
+      if (error) {
+        Alert.alert('Error', error.message);
+        return;
+      }
+
+      Alert.alert('Success', 'Account created successfully!', [
           {
             text: 'OK',
             onPress: () => {
-              // Reset form
               setFormData({
                 fullName: '',
                 email: '',
@@ -108,14 +114,14 @@ const SignUp = () => {
                 confirmPassword: ''
               });
               setErrors({});
-              // Navigate back to login screen after successful signup
-              router.push('/');
+              router.replace('/(main)'); // or your post-login route
             }
           }
-        ]
-      );
+        ]);
+      
     } catch (error) {
-      Alert.alert('Error', 'Failed to create account. Please try again.');
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+      console.error("Signup error:", error);
     } finally {
       setIsLoading(false);
     }
