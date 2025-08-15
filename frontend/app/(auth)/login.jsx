@@ -1,5 +1,3 @@
-// Represents the home page component
-// 'rnfes' + tab
 import React, { useState } from 'react';
 import { 
   View, 
@@ -13,14 +11,14 @@ import {
   Alert,
   ActivityIndicator
 } from 'react-native';
+import { Link, router } from 'expo-router';
 import Constants from 'expo-constants';
 import 'react-native-url-polyfill/auto';
 import 'react-native-get-random-values';
-import { supabase } from '../backend/config/supabase.js';
+import { supabase } from '../../backend/config/supabase.js'; 
 
-
-const IP_ADDRESS = Constants.expoConfig.extra.LOCAL_IP;
 const LoginScreen = () => {
+  const IP_ADDRESS = Constants.expoConfig.extra.LOCAL_IP;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +48,8 @@ const LoginScreen = () => {
     } else {
       Alert.alert('Success', 'Login successful!');
       console.log(data);
+      // Navigate to main app/home screen after successful login
+      router.push('/(main)/');
     }
 
       // Reset form
@@ -68,7 +68,8 @@ const LoginScreen = () => {
   };
 
   const handleSignUp = () => {
-    Alert.alert('Sign Up', 'Navigate to sign up screen');
+    // Navigate to SignUp screen using Expo Router
+    router.push('/signup');
   };
 
   return (
