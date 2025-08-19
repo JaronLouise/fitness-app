@@ -23,6 +23,7 @@ export default {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
       },
+      package: "com.fit.fitnessapp",
       edgeToEdgeEnabled: true
     },
     web: {
@@ -34,7 +35,10 @@ export default {
     extra: {
       LOCAL_IP: process.env.LOCAL_IP,
       SUPABASE_URL: process.env.SUPABASE_URL,
-      SUPABASE_KEY: process.env.SUPABASE_KEY
+      SUPABASE_KEY: process.env.SUPABASE_KEY,
+      eas: {
+        projectId: "1ce3c901-d772-403e-a1f6-30ea58db6a77"
+      }
     }
   }
 };
