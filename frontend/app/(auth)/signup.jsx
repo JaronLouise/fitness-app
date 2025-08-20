@@ -37,15 +37,12 @@ const SignUp = () => {
 
     const validateForm = () => {
         const newErrors = {};
-
-        // Email validation
         if (!formData.email) {
             newErrors.email = 'Email is required';
         } else if (!formData.email.includes('@')) {
             newErrors.email = 'Please enter a valid email address';
         }
-
-        // Password validation
+n
         if (!formData.password) {
             newErrors.password = 'Password is required';
         } else if (formData.password.length < 6) {
@@ -54,14 +51,12 @@ const SignUp = () => {
             newErrors.password = 'Password must contain uppercase, lowercase, and number';
         }
 
-        // Confirm Password validation
         if (!formData.confirmPassword) {
             newErrors.confirmPassword = 'Please confirm your password';
         } else if (formData.password !== formData.confirmPassword) {
             newErrors.confirmPassword = 'Passwords do not match';
         }
 
-        // Terms validation
         if (!acceptedTerms) {
             newErrors.terms = 'You must accept the terms and conditions';
         }
@@ -76,7 +71,6 @@ const SignUp = () => {
             [field]: value
         }));
 
-        // Clear error when user starts typing
         if (errors[field]) {
             setErrors(prev => ({
                 ...prev,

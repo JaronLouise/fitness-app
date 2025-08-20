@@ -11,7 +11,8 @@ import {
     Platform,
     Alert,
     ActivityIndicator,
-    Image
+    Image,
+    Linking
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import Constants from 'expo-constants';
@@ -50,11 +51,9 @@ const LoginScreen = () => {
             } else {
                 Alert.alert('Success', 'Login successful!');
                 console.log(data);
-                // Navigate to main app/home screen after successful login
                 router.push('/(main)/');
             }
 
-            // Reset form
             setEmail('');
             setPassword('');
         } catch (error) {
@@ -66,16 +65,31 @@ const LoginScreen = () => {
     };
 
     const handleGoogleLogin = async () => {
+        setIsLoading(true);
         try {
             const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
+            provider: 'google',
+            options: {
+                redirectTo: 'fitnessapp://auth/callback',
+            },
             });
-            if (error) Alert.alert('Error', error.message);
+
+            if (error) {
+            Alert.alert('Error', error.message);
+            return;
+            }
+
+            if (data?.url) {
+            await Linking.openURL(data.url);
+            }
         } catch (err) {
             Alert.alert('Error', 'Google login failed');
             console.error(err);
+        } finally {
+            setIsLoading(false);
         }
-    };
+        };
+
 
 
     const handleForgotPassword = () => {
@@ -83,7 +97,6 @@ const LoginScreen = () => {
     };
 
     const handleSignUp = () => {
-        // Navigate to SignUp screen using Expo Router
         router.push('/signup');
     };
 
