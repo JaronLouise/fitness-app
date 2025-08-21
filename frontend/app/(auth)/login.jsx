@@ -93,7 +93,7 @@ const LoginScreen = () => {
 
 
     const handleForgotPassword = () => {
-        Alert.alert('Forgot Password', 'Password reset functionality would be implemented here');
+        router.push('/forgot-password');
     };
 
     const handleSignUp = () => {
