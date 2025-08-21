@@ -23,7 +23,10 @@ export default {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
       },
+<<<<<<< HEAD
       package: "com.fit.fitnessapp",
+=======
+>>>>>>> be6adf8b899e3298c10c8274016fe9c1f79c0dd0
       edgeToEdgeEnabled: true
     },
     web: {
@@ -35,10 +38,14 @@ export default {
     extra: {
       LOCAL_IP: process.env.LOCAL_IP,
       SUPABASE_URL: process.env.SUPABASE_URL,
+<<<<<<< HEAD
       SUPABASE_KEY: process.env.SUPABASE_KEY,
       eas: {
         projectId: "1ce3c901-d772-403e-a1f6-30ea58db6a77"
       }
+=======
+      SUPABASE_KEY: process.env.SUPABASE_KEY
+>>>>>>> be6adf8b899e3298c10c8274016fe9c1f79c0dd0
     }
   }
 };

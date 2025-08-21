@@ -24,8 +24,12 @@
     "react-native-get-random-values": "^1.11.0",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
+<<<<<<< HEAD
     "react-native-url-polyfill": "^2.0.0",
     "expo-auth-session": "~6.2.1"
+=======
+    "react-native-url-polyfill": "^2.0.0"
+>>>>>>> be6adf8b899e3298c10c8274016fe9c1f79c0dd0
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
