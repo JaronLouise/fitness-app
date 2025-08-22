@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { router } from "expo-router";
+import { supabase } from "../../backend/config/supabase.js";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -16,17 +17,35 @@ const ResetPassword = () => {
       Alert.alert("Error", "Passwords do not match");
       return;
     }
+    if (password.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters long");
+      return;
+    }
 
     setIsLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
 
-    if (error) {
-      Alert.alert("Error", error.message);
-    } else {
-      Alert.alert("Success", "Password updated! You can now log in.");
-      router.replace("/"); // go back to login
+      if (error) {
+        Alert.alert("Error", error.message);
+      } else {
+        Alert.alert(
+          "Success", 
+          "Password updated successfully! You can now log in with your new password.",
+          [
+            {
+              text: "Login",
+              onPress: () => router.replace("/")
+            }
+          ]
+        );
+      }
+    } catch (err) {
+      Alert.alert("Error", "Failed to update password. Please try again.");
+      console.error("Password update error:", err);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (

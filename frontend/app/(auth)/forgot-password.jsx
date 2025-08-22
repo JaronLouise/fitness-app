@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { router } from "expo-router";
+import { supabase } from "../../backend/config/supabase.js";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -12,18 +13,39 @@ const ForgotPassword = () => {
       return;
     }
 
-    setIsLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: "fitnessapp://reset-password", // deep link
-    });
-
-    if (error) {
-      Alert.alert("Error", error.message);
-    } else {
-      Alert.alert("Success", "Check your email for the reset link!");
-      router.back(); // go back to login
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert("Error", "Please enter a valid email address");
+      return;
     }
-    setIsLoading(false);
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: "fitnessapp://reset-password", // deep link
+      });
+
+      if (error) {
+        Alert.alert("Error", error.message);
+      } else {
+        Alert.alert(
+          "Success", 
+          "Password reset link sent! Check your email and click the link to reset your password.",
+          [
+            {
+              text: "OK",
+              onPress: () => router.back()
+            }
+          ]
+        );
+      }
+    } catch (err) {
+      Alert.alert("Error", "Failed to send reset link. Please try again.");
+      console.error("Password reset error:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
