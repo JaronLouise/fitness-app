@@ -10,17 +10,17 @@ import {
   Alert
 } from 'react-native';
 import { router } from 'expo-router';
-import { supabase } from '../backend/config/supabase.js';
+import { supabase } from '../../backend/config/supabase.js';
 
 // Import step components
-import Step1Welcome from './post-signup/Step1Welcome';
-import Step2Gender from './post-signup/Step2Gender';
-import Step3Goals from './post-signup/Step3Goals';
-import Step4FitnessLevel from './post-signup/Step4FitnessLevel';
-import Step5MealPlan from './post-signup/Step5MealPlan';
-import Step6Height from './post-signup/Step6Height';
-import Step7Weight from './post-signup/Step7Weight';
-import Step8Age from './post-signup/Step8Age';
+import Step1Welcome from './Step1Welcome';
+import Step2Gender from './Step2Gender';
+import Step3Goals from './Step3Goals';
+import Step4FitnessLevel from './Step4FitnessLevel';
+import Step5MealPlan from './Step5MealPlan';
+import Step6Height from './Step6Height';
+import Step7Weight from './Step7Weight';
+import Step8Age from './Step8Age';
 
 const PostSignup = () => {
   const [currentStep, setCurrentStep] = useState(0);
