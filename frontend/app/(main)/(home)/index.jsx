@@ -10,8 +10,8 @@ import {
     Dimensions 
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../backend/config/supabase';
-import { fetchUserProfile } from "../../backend/api/fetch_user_data.js";
+import { supabase } from '../../../backend/config/supabase.js';
+import { fetchUserProfile } from "../../../backend/api/fetch_user_data.js";
 import { router } from 'expo-router';
 import { BarChart } from "react-native-chart-kit";
 import { CalendarList } from 'react-native-calendars'; 

@@ -17,15 +17,14 @@ export default function RootLayout() {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
         console.log('Existing session:', data.session);
-        router.replace('/(main)/');
+        router.replace('/(main)/(home)');
       }
     };
 
     checkSession();
 
-    //Handle deep link
+    // Handle deep links
     const subscription = Linking.addEventListener('url', async ({ url }) => {
-
       const params = parseHashParams(url);
 
       if (params.access_token && params.refresh_token) {
@@ -37,7 +36,7 @@ export default function RootLayout() {
         if (error) {
           console.error('Failed to set Supabase session:', error);
         } else {
-          router.replace('/(main)/');
+          router.replace('/(main)/(home)');
         }
       } else {
         console.warn('No access_token found in deep link');
@@ -53,7 +52,7 @@ export default function RootLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(main)" />
-      <Stack.Screen name="(post-signup)"/>
+      <Stack.Screen name="(post-signup)" />
     </Stack>
   );
 }

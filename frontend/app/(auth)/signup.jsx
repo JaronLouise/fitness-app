@@ -121,7 +121,7 @@ const SignUp = () => {
                             confirmPassword: ''
                         });
                         setErrors({});
-                        router.replace('/(main)'); // or your post-login route
+                        router.replace('/(main)/(home)/');
                     }
                 }
             ]);

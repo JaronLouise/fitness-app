@@ -51,7 +51,7 @@ const LoginScreen = () => {
             } else {
                 Alert.alert('Success', 'Login successful!');
                 console.log(data);
-                router.push('/(main)/');
+                router.push('/(main)/(home)/');
             }
 
             setEmail('');

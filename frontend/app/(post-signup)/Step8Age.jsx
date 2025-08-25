@@ -6,7 +6,10 @@ import {
   View, 
   TouchableOpacity,
   TextInput,
-  Alert
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView
 } from 'react-native';
 
 const Step8Age = ({ onUpdateData, onBack, onNext, onComplete, isLoading, currentStep, stepData, canProceed, canComplete, isLastStep }) => {
@@ -65,6 +68,15 @@ const Step8Age = ({ onUpdateData, onBack, onNext, onComplete, isLoading, current
   };
 
   return (
+    <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === "ios" ? "padding" : undefined}
+    keyboardVerticalOffset={80} // tweak based on header height
+  >
+    <ScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -83,9 +95,10 @@ const Step8Age = ({ onUpdateData, onBack, onNext, onComplete, isLoading, current
             value={age}
             onChangeText={handleAgeChange}
             placeholder="Enter your age"
-            keyboardType="numeric"
+            keyboardType="number-pad"
+            returnKeyType="done"
             maxLength={3}
-            autoFocus={true}
+            autoFocus
           />
           <Text style={styles.ageUnit}>years</Text>
         </View>
@@ -161,6 +174,8 @@ const Step8Age = ({ onUpdateData, onBack, onNext, onComplete, isLoading, current
         </Text>
       </View>
     </View>
+    </ScrollView>
+  </KeyboardAvoidingView>
   );
 };
 
