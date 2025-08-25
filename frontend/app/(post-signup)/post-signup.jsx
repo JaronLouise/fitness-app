@@ -82,15 +82,14 @@ const PostSignup = () => {
         setUserProfile(profile);
         setCurrentStep(profile.signup_step || 0);
         
-        // Load existing step data
-        if (profile.step_0_data) setStepData(prev => ({ ...prev, step0: profile.step_0_data }));
-        if (profile.step_1_data) setStepData(prev => ({ ...prev, step1: profile.step_1_data }));
-        if (profile.step_2_data) setStepData(prev => ({ ...prev, step2: profile.step_2_data }));
-        if (profile.step_3_data) setStepData(prev => ({ ...prev, step3: profile.step_3_data }));
-        if (profile.step_4_data) setStepData(prev => ({ ...prev, step4: profile.step_4_data }));
-        if (profile.step_5_data) setStepData(prev => ({ ...prev, step5: profile.step_5_data }));
-        if (profile.step_6_data) setStepData(prev => ({ ...prev, step6: profile.step_6_data }));
-        if (profile.step_7_data) setStepData(prev => ({ ...prev, step7: profile.step_7_data }));
+        // Load existing step data with descriptive column names
+        if (profile.gender_data) setStepData(prev => ({ ...prev, step1: profile.gender_data }));
+        if (profile.goals_data) setStepData(prev => ({ ...prev, step2: profile.goals_data }));
+        if (profile.fitness_level_data) setStepData(prev => ({ ...prev, step3: profile.fitness_level_data }));
+        if (profile.meal_plan_data) setStepData(prev => ({ ...prev, step4: profile.meal_plan_data }));
+        if (profile.height_data) setStepData(prev => ({ ...prev, step5: profile.height_data }));
+        if (profile.weight_data) setStepData(prev => ({ ...prev, step6: profile.weight_data }));
+        if (profile.age_data) setStepData(prev => ({ ...prev, step7: profile.age_data }));
       } else {
         // Create new profile
         const { data: newProfile, error: createError } = await supabase
@@ -115,52 +114,50 @@ const PostSignup = () => {
     }
   };
 
-  const saveStepData = async (step, data) => {
+  const updateStepData = (step, data) => {
+    // Only update local state, don't save to database yet
+    setStepData(prev => ({
+      ...prev,
+      [`step${step}`]: data
+    }));
+  };
+
+  const saveAllDataToDatabase = async () => {
     try {
       setIsLoading(true);
       
-      // Update local state
-      setStepData(prev => ({
-        ...prev,
-        [`step${step}`]: data
-      }));
+      // Map step to appropriate database column name with descriptive names
+      // Note: step_0 is welcome step with no data to save
+      const columnMap = {
+        1: 'gender_data',
+        2: 'goals_data', 
+        3: 'fitness_level_data',
+        4: 'meal_plan_data',
+        5: 'height_data',
+        6: 'weight_data',
+        7: 'age_data'
+      };
 
-      // Save to backend
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({
-          [`step_${step}_data`]: data,
-          signup_step: step,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userProfile.user_id);
-
-      if (error) throw error;
-
-      // Move to next step
-      if (step < TOTAL_STEPS - 1) {
-        setCurrentStep(step + 1);
-      } else {
-        // Complete signup
-        await completeSignup();
+      // Prepare all data for database update
+      const updateData = {};
+      // Start from step 1 (skip step 0 which is welcome)
+      for (let step = 1; step < TOTAL_STEPS; step++) {
+        const columnName = columnMap[step];
+        const stepDataKey = `step${step}`;
+        if (stepData[stepDataKey] && Object.keys(stepData[stepDataKey]).length > 0) {
+          updateData[columnName] = stepData[stepDataKey];
+        }
       }
-    } catch (error) {
-      console.error('Step save error:', error);
-      Alert.alert('Error', 'Failed to save step data');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  const completeSignup = async () => {
-    try {
+      // Add completion status
+      updateData.signup_completed = true;
+      updateData.signup_step = 7;
+      updateData.updated_at = new Date().toISOString();
+
+      // Save all data to backend at once
       const { error } = await supabase
         .from('user_profiles')
-        .update({
-          signup_completed: true,
-          signup_step: 7,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('user_id', userProfile.user_id);
 
       if (error) throw error;
@@ -172,8 +169,10 @@ const PostSignup = () => {
         }
       ]);
     } catch (error) {
-      console.error('Signup completion error:', error);
-      Alert.alert('Error', 'Failed to complete signup');
+      console.error('Data save error:', error);
+      Alert.alert('Error', 'Failed to save profile data');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -183,13 +182,62 @@ const PostSignup = () => {
     }
   };
 
+  const goToNextStep = () => {
+    if (currentStep < TOTAL_STEPS - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const canProceedToNext = (step) => {
+    // Welcome step (step 0) can always proceed - no data required
+    if (step === 0) return true;
+    
+    const currentStepData = stepData[`step${step}`];
+    
+    // Check if current step has required data
+    switch (step) {
+      case 1: // Gender
+        return currentStepData.gender;
+      case 2: // Goals
+        return currentStepData.goals && currentStepData.goals.length > 0;
+      case 3: // Fitness level
+        return currentStepData.fitness_level;
+      case 4: // Meal plan
+        return currentStepData.meal_plan;
+      case 5: // Height
+        return currentStepData.height_value && currentStepData.height_unit;
+      case 6: // Weight
+        return currentStepData.weight_value && currentStepData.weight_unit;
+      case 7: // Age
+        return currentStepData.age;
+      default:
+        return false;
+    }
+  };
+
+  const canCompleteSignup = () => {
+    // Check if all required steps (1-7) have data
+    // Skip step 0 (welcome step) as it doesn't require data
+    for (let step = 1; step < TOTAL_STEPS; step++) {
+      if (!canProceedToNext(step)) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   const renderCurrentStep = () => {
     const commonProps = {
-      onContinue: saveStepData,
+      onUpdateData: updateStepData,
       onBack: goToPreviousStep,
+      onNext: goToNextStep,
+      onComplete: saveAllDataToDatabase,
       isLoading,
       stepData: stepData[`step${currentStep}`],
-      currentStep
+      currentStep,
+      canProceed: canProceedToNext(currentStep),
+      canComplete: canCompleteSignup(),
+      isLastStep: currentStep === TOTAL_STEPS - 1
     };
 
     switch (currentStep) {

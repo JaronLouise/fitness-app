@@ -1,4 +1,4 @@
-// Step3Goals.jsx - Primary fitness goals selection
+// Step3Goals.jsx - Clean goals selection with proper symbols and layout
 import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
@@ -7,7 +7,7 @@ import {
   TouchableOpacity 
 } from 'react-native';
 
-const Step3Goals = ({ onContinue, onBack, isLoading, currentStep, stepData }) => {
+const Step3Goals = ({ onUpdateData, onBack, onNext, isLoading, currentStep, stepData, canProceed }) => {
   const [selectedGoals, setSelectedGoals] = useState(stepData.goals || []);
 
   useEffect(() => {
@@ -18,41 +18,36 @@ const Step3Goals = ({ onContinue, onBack, isLoading, currentStep, stepData }) =>
   }, [stepData]);
 
   const goals = [
-    { id: 'lose_weight', label: 'Lose Weight', icon: '⚖️' },
-    { id: 'gain_muscle', label: 'Gain Muscle', icon: '💪' },
-    { id: 'improve_health', label: 'Improve Health', icon: '❤️' },
-    { id: 'get_in_shape', label: 'Get in Shape', icon: '🏃‍♂️' }
+    { id: 'lose_weight', label: 'Lose Weight', icon: '⚖️', description: 'Burn fat and reach your target weight' },
+    { id: 'gain_muscle', label: 'Build Muscle', icon: '💪', description: 'Increase strength and muscle mass' },
+    { id: 'improve_health', label: 'Improve Health', icon: '❤️', description: 'Boost overall wellness and energy' },
+    { id: 'get_in_shape', label: 'Get in Shape', icon: '🏃', description: 'Enhance fitness and endurance' }
   ];
 
   const handleGoalToggle = (goalId) => {
-    setSelectedGoals(prev => {
-      if (prev.includes(goalId)) {
-        return prev.filter(id => id !== goalId);
-      } else {
-        return [...prev, goalId];
-      }
-    });
+    const newGoals = selectedGoals.includes(goalId) 
+      ? selectedGoals.filter(id => id !== goalId)
+      : [...selectedGoals, goalId];
+    
+    setSelectedGoals(newGoals);
+    
+    // Update local state but don't save to database yet
+    onUpdateData(currentStep, { goals: newGoals });
   };
 
-  const handleContinue = () => {
-    if (selectedGoals.length === 0) {
-      // Show error that at least one goal must be selected
-      return;
+  const handleConfirm = () => {
+    if (canProceed) {
+      onNext();
     }
-    onContinue(currentStep, { goals: selectedGoals });
-  };
-
-  const handleBack = () => {
-    onBack();
   };
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>What's your primary goal?</Text>
+        <Text style={styles.title}>What are your goals?</Text>
         <Text style={styles.subtitle}>
-          You can select multiple goals. We'll create a plan that addresses all of them.
+          Select one or more goals. We'll create a personalized plan for you.
         </Text>
       </View>
 
@@ -66,55 +61,68 @@ const Step3Goals = ({ onContinue, onBack, isLoading, currentStep, stepData }) =>
               selectedGoals.includes(goal.id) && styles.goalButtonSelected
             ]}
             onPress={() => handleGoalToggle(goal.id)}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
-            <Text style={styles.goalIcon}>{goal.icon}</Text>
-            <Text style={[
-              styles.goalLabel,
-              selectedGoals.includes(goal.id) && styles.goalLabelSelected
-            ]}>
-              {goal.label}
-            </Text>
-            {selectedGoals.includes(goal.id) && (
-              <View style={styles.checkmark}>
-                <Text style={styles.checkmarkText}>✓</Text>
+            <View style={styles.goalContent}>
+              <View style={styles.goalMain}>
+                <Text style={[
+                  styles.goalIcon,
+                  selectedGoals.includes(goal.id) && styles.goalIconSelected
+                ]}>
+                  {goal.icon}
+                </Text>
+                <View style={styles.goalText}>
+                  <Text style={[
+                    styles.goalLabel,
+                    selectedGoals.includes(goal.id) && styles.goalLabelSelected
+                  ]}>
+                    {goal.label}
+                  </Text>
+                  <Text style={[
+                    styles.goalDescription,
+                    selectedGoals.includes(goal.id) && styles.goalDescriptionSelected
+                  ]}>
+                    {goal.description}
+                  </Text>
+                </View>
               </View>
-            )}
+              {selectedGoals.includes(goal.id) && (
+                <View style={styles.checkmark}>
+                  <Text style={styles.checkmarkText}>✓</Text>
+                </View>
+              )}
+            </View>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Selection Summary */}
-      {selectedGoals.length > 0 && (
-        <View style={styles.summaryContainer}>
-          <Text style={styles.summaryText}>
-            Selected: {selectedGoals.length} goal{selectedGoals.length !== 1 ? 's' : ''}
-          </Text>
-        </View>
-      )}
+      
 
-      {/* Navigation Buttons */}
-      <View style={styles.navigationContainer}>
-        {/* Back Button */}
+      {/* Navigation Controls */}
+      <View style={styles.navigation}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={handleBack}
+          onPress={onBack}
           disabled={isLoading}
+          activeOpacity={0.7}
         >
-          <Text style={styles.backButtonText}>Back</Text>
+          <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
 
-        {/* Continue Button */}
         <TouchableOpacity 
           style={[
-            styles.continueButton, 
-            (selectedGoals.length === 0 || isLoading) && styles.continueButtonDisabled
+            styles.nextButton,
+            !canProceed && styles.nextButtonDisabled
           ]}
-          onPress={handleContinue}
-          disabled={selectedGoals.length === 0 || isLoading}
+          onPress={handleConfirm}
+          disabled={!canProceed || isLoading}
+          activeOpacity={0.8}
         >
-          <Text style={styles.continueButtonText}>
-            {isLoading ? 'Saving...' : 'Continue'}
+          <Text style={[
+            styles.nextButtonText,
+            !canProceed && styles.nextButtonTextDisabled
+          ]}>
+            {isLoading ? 'Loading...' : 'Continue →'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -130,136 +138,149 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 32,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: '700',
+    color: '#1a202c',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666666',
+    color: '#4a5568',
     textAlign: 'center',
-    lineHeight: 22,
-    maxWidth: 300,
+    lineHeight: 24,
+    maxWidth: 320,
   },
   goalsContainer: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
+    paddingTop: 8,
   },
   goalButton: {
-    height: 80,
     backgroundColor: '#ffffff',
     borderWidth: 2,
-    borderColor: '#e1e5e9',
+    borderColor: '#e2e8f0',
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    flexDirection: 'row',
+    marginBottom: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   goalButtonSelected: {
     borderColor: '#007AFF',
     backgroundColor: '#f0f8ff',
-  },
-  goalIcon: {
-    fontSize: 24,
-    marginRight: 16,
-  },
-  goalLabel: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    flex: 1,
-  },
-  goalLabelSelected: {
-    color: '#007AFF',
-  },
-  checkmark: {
-    position: 'absolute',
-    right: 20,
-    width: 24,
-    height: 24,
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkmarkText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  summaryContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  summaryText: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '600',
-  },
-  navigationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-  },
-  backButton: {
-    height: 56,
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#e1e5e9',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 0.48,
-  },
-  backButtonText: {
-    color: '#666666',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  continueButton: {
-    height: 56,
-    backgroundColor: '#007AFF',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 0.48,
     shadowColor: '#007AFF',
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
-    elevation: 8,
+    elevation: 6,
   },
-  continueButtonDisabled: {
-    backgroundColor: '#B0B0B0',
-    shadowOpacity: 0,
+  goalContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  continueButtonText: {
-    color: '#FFFFFF',
+  goalMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  goalIcon: {
+    fontSize: 28,
+    marginRight: 16,
+    opacity: 0.8,
+  },
+  goalIconSelected: {
+    opacity: 1,
+  },
+  goalText: {
+    flex: 1,
+  },
+  goalLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2d3748',
+    marginBottom: 4,
+  },
+  goalLabelSelected: {
+    color: '#007AFF',
+  },
+  goalDescription: {
+    fontSize: 14,
+    color: '#718096',
+    lineHeight: 18,
+  },
+  goalDescriptionSelected: {
+    color: '#4299e1',
+  },
+  checkmark: {
+    width: 28,
+    height: 28,
+    backgroundColor: '#007AFF',
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  checkmarkText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  
+  navigation: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    gap: 12,
+  },
+  backButton: {
+    flex: 1,
+    height: 52,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#4a5568',
     fontSize: 16,
     fontWeight: '600',
+  },
+  nextButton: {
+    flex: 1,
+    height: 52,
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nextButtonDisabled: {
+    backgroundColor: '#cbd5e0',
+  },
+  nextButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  nextButtonTextDisabled: {
+    color: '#a0aec0',
   },
 });
 
 export default Step3Goals;
-
-
-
-

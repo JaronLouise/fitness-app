@@ -1,5 +1,5 @@
-// Step7Weight.jsx - Weight measurement with unit toggle and scroll wheel
-import React, { useState, useEffect } from 'react';
+// Step7Weight.jsx - Weight measurement with unit toggle, scroll wheel, and confirm button
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -8,9 +8,13 @@ import {
   ScrollView
 } from 'react-native';
 
-const Step7Weight = ({ onContinue, onBack, isLoading, currentStep, stepData }) => {
+const Step7Weight = ({ onUpdateData, onBack, onNext, isLoading, currentStep, stepData, canProceed }) => {
   const [unit, setUnit] = useState(stepData.weight_unit || 'kg');
   const [weight, setWeight] = useState(stepData.weight_value || 70);
+  const scrollRef = useRef(null);
+  const ITEM_HEIGHT = 50;
+  const VISIBLE_HEIGHT = 200;
+  const CENTER_SPACER = (VISIBLE_HEIGHT - ITEM_HEIGHT) / 2; // 75
 
   useEffect(() => {
     // Load existing data if available
@@ -22,6 +26,21 @@ const Step7Weight = ({ onContinue, onBack, isLoading, currentStep, stepData }) =
     }
   }, [stepData]);
 
+  // Keep wheel aligned when unit or value changes
+  useEffect(() => {
+    const index = items.findIndex(v => v === weight);
+    if (index >= 0) {
+      scrollToIndex(index, false);
+    }
+  }, [unit]);
+
+  useEffect(() => {
+    const index = items.findIndex(v => v === weight);
+    if (index >= 0) {
+      scrollToIndex(index, true);
+    }
+  }, [weight]);
+
   // Weight ranges for different units
   const weightRanges = {
     kg: { min: 30, max: 200, step: 0.5 },
@@ -30,57 +49,88 @@ const Step7Weight = ({ onContinue, onBack, isLoading, currentStep, stepData }) =
 
   const currentRange = weightRanges[unit];
 
+  const items = useMemo(() => {
+    const result = [];
+    for (let i = currentRange.min; i <= currentRange.max; i += currentRange.step) {
+      const value = Math.round(i * (1 / currentRange.step)) / (1 / currentRange.step);
+      result.push(value);
+    }
+    return result;
+  }, [currentRange.min, currentRange.max, currentRange.step]);
+
+  const scrollToIndex = (index, animated = true) => {
+    if (!scrollRef.current) return;
+    const y = index * ITEM_HEIGHT;
+    scrollRef.current.scrollTo({ y, animated });
+  };
+
   const handleUnitToggle = () => {
     const newUnit = unit === 'kg' ? 'lb' : 'kg';
-    setUnit(newUnit);
-    
-    // Convert weight value between units
+    let converted = weight;
     if (newUnit === 'lb') {
-      setWeight(Math.round(weight * 2.20462)); // Convert kg to lbs, round to whole number
+      converted = Math.round(weight * 2.20462); // kg -> lb, 1 step
     } else {
-      setWeight(Math.round(weight / 2.20462 * 2) / 2); // Convert lbs to kg, round to 0.5
+      converted = Math.round((weight / 2.20462) * 2) / 2; // lb -> kg, 0.5 step
     }
+    setUnit(newUnit);
+    setWeight(converted);
+    onUpdateData(currentStep, { weight_unit: newUnit, weight_value: converted });
   };
 
   const handleWeightChange = (newWeight) => {
     setWeight(newWeight);
-  };
-
-  const handleContinue = () => {
-    onContinue(currentStep, { 
+    // Update local state but don't save to database yet
+    onUpdateData(currentStep, { 
       weight_unit: unit, 
-      weight_value: weight 
+      weight_value: newWeight 
     });
   };
 
-  const handleBack = () => {
-    onBack();
+  const handleConfirm = () => {
+    if (canProceed) {
+      onNext();
+    }
   };
 
   const renderWeightPicker = () => {
-    const items = [];
-    for (let i = currentRange.min; i <= currentRange.max; i += currentRange.step) {
-      items.push(i);
-    }
-
     return (
       <View style={styles.pickerContainer}>
         <View style={styles.pickerWrapper}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            snapToInterval={50}
+            snapToInterval={ITEM_HEIGHT}
             decelerationRate="fast"
             style={styles.picker}
-            contentContainerStyle={styles.pickerContent}
+            contentContainerStyle={[styles.pickerContent, { paddingVertical: CENTER_SPACER }]}
+            ref={scrollRef}
+            onLayout={() => {
+              const index = items.findIndex(v => v === weight);
+              if (index >= 0) scrollToIndex(index, false);
+            }}
+            onMomentumScrollEnd={(e) => {
+              const y = e.nativeEvent.contentOffset.y;
+              const index = Math.round(y / ITEM_HEIGHT);
+              const clampedIndex = Math.max(0, Math.min(index, items.length - 1));
+              const value = items[clampedIndex];
+              if (value !== weight) {
+                setWeight(value);
+                onUpdateData(currentStep, { weight_unit: unit, weight_value: value });
+              }
+              scrollToIndex(clampedIndex);
+            }}
           >
             {items.map((item) => (
               <TouchableOpacity
-                key={item}
+                key={String(item)}
                 style={[
                   styles.pickerItem,
                   weight === item && styles.pickerItemSelected
                 ]}
-                onPress={() => handleWeightChange(item)}
+                onPress={() => {
+                  const idx = items.findIndex(v => v === item);
+                  if (idx >= 0) scrollToIndex(idx);
+                  handleWeightChange(item);
+                }}
               >
                 <Text style={[
                   styles.pickerItemText,
@@ -156,25 +206,31 @@ const Step7Weight = ({ onContinue, onBack, isLoading, currentStep, stepData }) =
         </Text>
       </View>
 
-      {/* Navigation Buttons */}
+      {/* Navigation Controls */}
       <View style={styles.navigationContainer}>
         {/* Back Button */}
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={handleBack}
+          onPress={onBack}
           disabled={isLoading}
         >
-          <Text style={styles.backButtonText}>Back</Text>
+          <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
 
-        {/* Continue Button */}
+        {/* Confirm Button */}
         <TouchableOpacity 
-          style={[styles.continueButton, isLoading && styles.continueButtonDisabled]}
-          onPress={handleContinue}
-          disabled={isLoading}
+          style={[
+            styles.confirmButton,
+            !canProceed && styles.confirmButtonDisabled
+          ]}
+          onPress={handleConfirm}
+          disabled={!canProceed || isLoading}
         >
-          <Text style={styles.continueButtonText}>
-            {isLoading ? 'Saving...' : 'Continue'}
+          <Text style={[
+            styles.confirmButtonText,
+            !canProceed && styles.confirmButtonTextDisabled
+          ]}>
+            {isLoading ? 'Loading...' : 'Continue →'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -261,14 +317,14 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   pickerContent: {
-    paddingVertical: 75, // Center the selected item
+    // paddingVertical dynamically set from component to center items
   },
   pickerItem: {
     height: 50,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
-    marginVertical: 2,
+    // No vertical margin to keep exact item height for snapping
   },
   pickerItemSelected: {
     backgroundColor: '#f0f8ff',
@@ -292,6 +348,7 @@ const styles = StyleSheet.create({
     borderColor: '#007AFF',
     borderRadius: 8,
     marginTop: -25,
+    pointerEvents: 'none',
   },
   weightUnit: {
     fontSize: 18,
@@ -312,50 +369,56 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#007AFF',
   },
+  selectionHint: {
+    fontSize: 14,
+    color: '#999999',
+    marginTop: 8,
+  },
+  instructionsContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  instructionsText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 22,
+    maxWidth: 300,
+  },
   navigationContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
+    marginTop: 20,
   },
   backButton: {
-    height: 56,
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#e1e5e9',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 0.48,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    backgroundColor: '#f0f0f0',
   },
   backButtonText: {
+    fontSize: 16,
     color: '#666666',
-    fontSize: 16,
     fontWeight: '600',
   },
-  continueButton: {
-    height: 56,
+  confirmButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
     backgroundColor: '#007AFF',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 0.48,
-    shadowColor: '#007AFF',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
-  continueButtonDisabled: {
-    backgroundColor: '#B0B0B0',
-    shadowOpacity: 0,
+  confirmButtonDisabled: {
+    backgroundColor: '#e0e0e0',
+    opacity: 0.7,
   },
-  continueButtonText: {
-    color: '#FFFFFF',
+  confirmButtonText: {
     fontSize: 16,
+    color: '#ffffff',
     fontWeight: '600',
+  },
+  confirmButtonTextDisabled: {
+    color: '#999999',
   },
 });
 

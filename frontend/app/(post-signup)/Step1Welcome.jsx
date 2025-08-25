@@ -1,41 +1,80 @@
-// Step1Welcome.jsx - Welcome banner with continue button
+// Step1Welcome.jsx - Clean, minimal welcome banner
 import React from 'react';
 import { 
   StyleSheet, 
   Text, 
-  View, 
-  TouchableOpacity 
+  View,
+  TouchableOpacity,
+  Dimensions
 } from 'react-native';
 
-const Step1Welcome = ({ onContinue, isLoading, currentStep }) => {
-  const handleContinue = () => {
-    onContinue(currentStep, {}); // No data to save for welcome step
-  };
+const { width } = Dimensions.get('window');
 
+const Step1Welcome = ({ onNext, onBack, canProceed, currentStep, isLoading }) => {
   return (
     <View style={styles.container}>
-      {/* Welcome Banner */}
-      <View style={styles.bannerContainer}>
-        <Text style={styles.welcomeTitle}>Welcome to Your Fitness Journey! 🎉</Text>
-        <Text style={styles.welcomeSubtitle}>
+      {/* Welcome Content */}
+      <View style={styles.content}>
+        <View style={styles.iconContainer}>
+          <Text style={styles.icon}>🎯</Text>
+        </View>
+        
+        <Text style={styles.title}>
+          Welcome to Your{'\n'}
+          <Text style={styles.titleAccent}>Fitness Journey</Text>
+        </Text>
+        
+        <Text style={styles.subtitle}>
           Let's get to know you better so we can create a personalized fitness plan just for you.
         </Text>
-        <Text style={styles.welcomeDescription}>
-          We'll ask you a few questions about your goals, experience, and preferences. 
-          This will only take a few minutes and will help us tailor your experience perfectly.
+        
+        <View style={styles.features}>
+          <View style={styles.feature}>
+            <Text style={styles.featureIcon}>✨</Text>
+            <Text style={styles.featureText}>Personalized workout plans</Text>
+          </View>
+          <View style={styles.feature}>
+            <Text style={styles.featureIcon}>📊</Text>
+            <Text style={styles.featureText}>Progress tracking & analytics</Text>
+          </View>
+          <View style={styles.feature}>
+            <Text style={styles.featureIcon}>🍎</Text>
+            <Text style={styles.featureText}>Custom nutrition guidance</Text>
+          </View>
+        </View>
+        
+        <Text style={styles.description}>
+          This will only take a few minutes.
         </Text>
       </View>
 
-      {/* Continue Button */}
-      <TouchableOpacity 
-        style={[styles.continueButton, isLoading && styles.continueButtonDisabled]}
-        onPress={handleContinue}
-        disabled={isLoading}
-      >
-        <Text style={styles.continueButtonText}>
-          {isLoading ? 'Setting up...' : 'Continue'}
-        </Text>
-      </TouchableOpacity>
+      {/* Navigation */}
+      <View style={styles.navigation}>
+        {currentStep > 0 && (
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={onBack}
+            disabled={isLoading}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity 
+          style={[
+            styles.nextButton,
+            currentStep === 0 && styles.fullWidth
+          ]}
+          onPress={onNext}
+          disabled={isLoading}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.nextButtonText}>
+            {isLoading ? 'Loading...' : 'Get Started →'}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -46,63 +85,111 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingBottom: 40,
   },
-  bannerContainer: {
+  content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
-  welcomeTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 36,
-  },
-  welcomeSubtitle: {
-    fontSize: 18,
-    color: '#007AFF',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 24,
-    fontWeight: '600',
-  },
-  welcomeDescription: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 24,
-    maxWidth: 300,
-  },
-  continueButton: {
-    height: 56,
-    backgroundColor: '#007AFF',
-    borderRadius: 16,
+  iconContainer: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#f8faff',
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#007AFF',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
-  continueButtonDisabled: {
-    backgroundColor: '#B0B0B0',
-    shadowOpacity: 0,
+  icon: {
+    fontSize: 32,
   },
-  continueButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1a202c',
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 36,
+  },
+  titleAccent: {
+    color: '#007AFF',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#4a5568',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 32,
+    maxWidth: 300,
+  },
+  features: {
+    width: '100%',
+    maxWidth: 280,
+    marginBottom: 24,
+  },
+  feature: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  featureIcon: {
+    fontSize: 16,
+    marginRight: 12,
+    width: 24,
+    textAlign: 'center',
+  },
+  featureText: {
+    fontSize: 15,
+    color: '#2d3748',
+    fontWeight: '500',
+    flex: 1,
+  },
+  description: {
+    fontSize: 14,
+    color: '#718096',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  navigation: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    gap: 12,
+  },
+  backButton: {
+    flex: 1,
+    height: 52,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#4a5568',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  nextButton: {
+    flex: 1,
+    height: 52,
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullWidth: {
+    width: width - 48,
+  },
+  nextButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
     fontWeight: '600',
   },
 });
 
 export default Step1Welcome;
-
-
-
-

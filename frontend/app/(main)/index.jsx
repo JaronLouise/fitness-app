@@ -21,13 +21,13 @@ const Home = () => {
         const profile = await fetchUserProfile(session.user.id);
         if (
           !profile ||
-          !profile.step_1_data?.gender ||
-          !profile.step_2_data?.goals ||
-          !profile.step_3_data?.fitness_level ||
-          !profile.step_4_data?.meal_plans ||
-          !profile.step_5_data?.height_value ||
-          !profile.step_6_data?.weight_value ||
-          !profile.step_7_data?.age
+          !profile.gender_data?.gender ||
+          !profile.goals_data?.goals ||
+          !profile.fitness_level_data?.fitness_level ||
+          !profile.meal_plan_data?.meal_plan ||
+          !profile.height_data?.height_value ||
+          !profile.weight_data?.weight_value ||
+          !profile.age_data?.age
         ) {
           router.replace('/(post-signup)/post-signup');
         } else {

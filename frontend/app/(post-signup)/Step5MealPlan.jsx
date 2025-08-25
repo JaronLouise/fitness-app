@@ -1,131 +1,133 @@
-// Step5MealPlan.jsx - Meal plan preferences selection
+// Step5MealPlan.jsx - Clean meal plan selection with hidden scroll
 import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
   Text, 
   View, 
-  TouchableOpacity 
+  TouchableOpacity,
+  ScrollView
 } from 'react-native';
 
-const Step5MealPlan = ({ onContinue, onBack, isLoading, currentStep, stepData }) => {
-  const [selectedMealPlans, setSelectedMealPlans] = useState(stepData.meal_plans || []);
+const Step5MealPlan = ({ onUpdateData, onBack, onNext, isLoading, currentStep, stepData, canProceed }) => {
+  const [selectedMealPlan, setSelectedMealPlan] = useState(stepData.meal_plan || '');
 
   useEffect(() => {
     // Load existing data if available
-    if (stepData.meal_plans) {
-      setSelectedMealPlans(stepData.meal_plans);
+    if (stepData.meal_plan) {
+      setSelectedMealPlan(stepData.meal_plan);
     }
   }, [stepData]);
 
   const mealPlans = [
-    { id: 'balanced_diet', label: 'Balanced Diet', icon: '🥗', description: 'Well-rounded nutrition' },
-    { id: 'intermittent_fasting', label: 'Intermittent Fasting', icon: '⏰', description: 'Time-restricted eating' },
-    { id: 'high_protein', label: 'High Protein Diet', icon: '🥩', description: 'Protein-focused meals' },
-    { id: 'low_carb', label: 'Low Carb Diet', icon: '🥑', description: 'Reduced carbohydrates' },
-    { id: 'low_fat', label: 'Low Fat Diet', icon: '🐟', description: 'Minimal fat intake' }
+    { id: 'balanced_diet', label: 'Balanced Diet', icon: '🥗', description: 'Well-rounded nutrition for overall health' },
+    { id: 'high_protein', label: 'High Protein', icon: '🥩', description: 'Protein-focused for muscle building' },
+    { id: 'low_carb', label: 'Low Carb', icon: '🥑', description: 'Reduced carbs for weight management' },
+    { id: 'intermittent_fasting', label: 'Intermittent Fasting', icon: '⏰', description: 'Time-restricted eating windows' },
+    { id: 'mediterranean', label: 'Mediterranean', icon: '🫒', description: 'Heart-healthy Mediterranean foods' },
+    { id: 'plant_based', label: 'Plant-Based', icon: '🌱', description: 'Vegetarian and vegan options' },
+    { id: 'keto', label: 'Ketogenic', icon: '🧈', description: 'High-fat, very low-carb approach' }
   ];
 
-  const handleMealPlanToggle = (planId) => {
-    setSelectedMealPlans(prev => {
-      if (prev.includes(planId)) {
-        return prev.filter(id => id !== planId);
-      } else {
-        return [...prev, planId];
-      }
-    });
+  const handleMealPlanSelect = (planId) => {
+    setSelectedMealPlan(planId);
+    // Update local state but don't save to database yet
+    onUpdateData(currentStep, { meal_plan: planId });
   };
 
-  const handleContinue = () => {
-    if (selectedMealPlans.length === 0) {
-      // Show error that at least one meal plan must be selected
-      return;
+  const handleConfirm = () => {
+    if (canProceed) {
+      onNext();
     }
-    onContinue(currentStep, { meal_plans: selectedMealPlans });
-  };
-
-  const handleBack = () => {
-    onBack();
   };
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>What's your preferred meal plan?</Text>
+        <Text style={styles.title}>Choose your meal plan</Text>
         <Text style={styles.subtitle}>
-          Select the meal plans that interest you. We'll create personalized nutrition recommendations.
+          Select the approach that best fits your lifestyle and goals.
         </Text>
       </View>
 
-      {/* Meal Plan Selection */}
-      <View style={styles.plansContainer}>
-        {mealPlans.map((plan) => (
+      {/* Meal Plan Selection - Scrollable */}
+      <ScrollView 
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        bounces={true}
+        scrollEventThrottle={16}
+      >
+        {mealPlans.map((plan, index) => (
           <TouchableOpacity
             key={plan.id}
             style={[
               styles.planButton,
-              selectedMealPlans.includes(plan.id) && styles.planButtonSelected
+              selectedMealPlan === plan.id && styles.planButtonSelected,
+              index === mealPlans.length - 1 && styles.lastButton
             ]}
-            onPress={() => handleMealPlanToggle(plan.id)}
-            activeOpacity={0.8}
+            onPress={() => handleMealPlanSelect(plan.id)}
+            activeOpacity={0.7}
           >
             <View style={styles.planContent}>
-              <Text style={styles.planIcon}>{plan.icon}</Text>
-              <View style={styles.planTextContainer}>
+              <View style={styles.planMain}>
                 <Text style={[
-                  styles.planLabel,
-                  selectedMealPlans.includes(plan.id) && styles.planLabelSelected
+                  styles.planIcon,
+                  selectedMealPlan === plan.id && styles.planIconSelected
                 ]}>
-                  {plan.label}
+                  {plan.icon}
                 </Text>
-                <Text style={[
-                  styles.planDescription,
-                  selectedMealPlans.includes(plan.id) && styles.planDescriptionSelected
-                ]}>
-                  {plan.description}
-                </Text>
+                <View style={styles.planText}>
+                  <Text style={[
+                    styles.planLabel,
+                    selectedMealPlan === plan.id && styles.planLabelSelected
+                  ]}>
+                    {plan.label}
+                  </Text>
+                  <Text style={[
+                    styles.planDescription,
+                    selectedMealPlan === plan.id && styles.planDescriptionSelected
+                  ]}>
+                    {plan.description}
+                  </Text>
+                </View>
               </View>
+              {selectedMealPlan === plan.id && (
+                <View style={styles.checkmark}>
+                  <Text style={styles.checkmarkText}>✓</Text>
+                </View>
+              )}
             </View>
-            {selectedMealPlans.includes(plan.id) && (
-              <View style={styles.checkmark}>
-                <Text style={styles.checkmarkText}>✓</Text>
-              </View>
-            )}
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
 
-      {/* Selection Summary */}
-      {selectedMealPlans.length > 0 && (
-        <View style={styles.summaryContainer}>
-          <Text style={styles.summaryText}>
-            Selected: {selectedMealPlans.length} meal plan{selectedMealPlans.length !== 1 ? 's' : ''}
-          </Text>
-        </View>
-      )}
-
-      {/* Navigation Buttons */}
-      <View style={styles.navigationContainer}>
-        {/* Back Button */}
+      {/* Navigation Controls */}
+      <View style={styles.navigation}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={handleBack}
+          onPress={onBack}
           disabled={isLoading}
+          activeOpacity={0.7}
         >
-          <Text style={styles.backButtonText}>Back</Text>
+          <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
 
-        {/* Continue Button */}
         <TouchableOpacity 
           style={[
-            styles.continueButton, 
-            (selectedMealPlans.length === 0 || isLoading) && styles.continueButtonDisabled
+            styles.nextButton,
+            !canProceed && styles.nextButtonDisabled
           ]}
-          onPress={handleContinue}
-          disabled={selectedMealPlans.length === 0 || isLoading}
+          onPress={handleConfirm}
+          disabled={!canProceed || isLoading}
+          activeOpacity={0.8}
         >
-          <Text style={styles.continueButtonText}>
-            {isLoading ? 'Saving...' : 'Continue'}
+          <Text style={[
+            styles.nextButtonText,
+            !canProceed && styles.nextButtonTextDisabled
+          ]}>
+            {isLoading ? 'Loading...' : 'Continue →'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -136,72 +138,94 @@ const Step5MealPlan = ({ onContinue, onBack, isLoading, currentStep, stepData })
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-between',
     paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 30,
+    paddingHorizontal: 24,
+    marginBottom: 24,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: '700',
+    color: '#1a202c',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666666',
+    color: '#4a5568',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
     maxWidth: 320,
   },
-  plansContainer: {
+  scrollContainer: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
+  },
+  scrollContent: {
+    paddingTop: 8,
+    paddingBottom: 16,
   },
   planButton: {
-    height: 90,
     backgroundColor: '#ffffff',
     borderWidth: 2,
-    borderColor: '#e1e5e9',
+    borderColor: '#e2e8f0',
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    flexDirection: 'row',
+    marginBottom: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   planButtonSelected: {
     borderColor: '#007AFF',
     backgroundColor: '#f0f8ff',
+    shadowColor: '#007AFF',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  lastButton: {
+    marginBottom: 0,
   },
   planContent: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    justifyContent: 'space-between',
+  },
+  planMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   planIcon: {
-    fontSize: 28,
-    marginRight: 18,
+    fontSize: 24,
+    marginRight: 16,
+    opacity: 0.8,
+    width: 32,
+    textAlign: 'center',
   },
-  planTextContainer: {
+  planIconSelected: {
+    opacity: 1,
+  },
+  planText: {
     flex: 1,
   },
   planLabel: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#2d3748',
     marginBottom: 4,
   },
   planLabelSelected: {
@@ -209,85 +233,66 @@ const styles = StyleSheet.create({
   },
   planDescription: {
     fontSize: 14,
-    color: '#666666',
+    color: '#718096',
     lineHeight: 18,
   },
   planDescriptionSelected: {
-    color: '#007AFF',
+    color: '#4299e1',
   },
   checkmark: {
-    position: 'absolute',
-    right: 20,
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
+    backgroundColor: '#007AFF',
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  checkmarkText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  navigation: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    gap: 12,
+  },
+  backButton: {
+    flex: 1,
+    height: 52,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#4a5568',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  nextButton: {
+    flex: 1,
+    height: 52,
     backgroundColor: '#007AFF',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  checkmarkText: {
+  nextButtonDisabled: {
+    backgroundColor: '#cbd5e0',
+  },
+  nextButtonText: {
     color: '#ffffff',
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  summaryContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  summaryText: {
-    fontSize: 16,
-    color: '#007AFF',
     fontWeight: '600',
   },
-  navigationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-  },
-  backButton: {
-    height: 56,
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#e1e5e9',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 0.48,
-  },
-  backButtonText: {
-    color: '#666666',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  continueButton: {
-    height: 56,
-    backgroundColor: '#007AFF',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flex: 0.48,
-    shadowColor: '#007AFF',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  continueButtonDisabled: {
-    backgroundColor: '#B0B0B0',
-    shadowOpacity: 0,
-  },
-  continueButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+  nextButtonTextDisabled: {
+    color: '#a0aec0',
   },
 });
 
 export default Step5MealPlan;
-
-
-
-

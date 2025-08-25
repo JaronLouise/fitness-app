@@ -1,4 +1,4 @@
-// Step4FitnessLevel.jsx - Fitness level selection (single choice)
+// Step4FitnessLevel.jsx - Fitness level selection with confirm button
 import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
@@ -7,7 +7,7 @@ import {
   TouchableOpacity 
 } from 'react-native';
 
-const Step4FitnessLevel = ({ onContinue, onBack, isLoading, currentStep, stepData }) => {
+const Step4FitnessLevel = ({ onUpdateData, onBack, onNext, isLoading, currentStep, stepData, canProceed }) => {
   const [selectedLevel, setSelectedLevel] = useState(stepData.fitness_level || '');
 
   useEffect(() => {
@@ -40,18 +40,14 @@ const Step4FitnessLevel = ({ onContinue, onBack, isLoading, currentStep, stepDat
 
   const handleLevelSelect = (levelId) => {
     setSelectedLevel(levelId);
+    // Update local state but don't save to database yet
+    onUpdateData(currentStep, { fitness_level: levelId });
   };
 
-  const handleContinue = () => {
-    if (!selectedLevel) {
-      // Show error that selection is required
-      return;
+  const handleConfirm = () => {
+    if (canProceed) {
+      onNext();
     }
-    onContinue(currentStep, { fitness_level: selectedLevel });
-  };
-
-  const handleBack = () => {
-    onBack();
   };
 
   return (
@@ -102,28 +98,33 @@ const Step4FitnessLevel = ({ onContinue, onBack, isLoading, currentStep, stepDat
         ))}
       </View>
 
-      {/* Navigation Buttons */}
+      
+
+      {/* Navigation Controls */}
       <View style={styles.navigationContainer}>
         {/* Back Button */}
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={handleBack}
+          onPress={onBack}
           disabled={isLoading}
         >
-          <Text style={styles.backButtonText}>Back</Text>
+          <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
 
-        {/* Continue Button */}
+        {/* Confirm Button */}
         <TouchableOpacity 
           style={[
-            styles.continueButton, 
-            (!selectedLevel || isLoading) && styles.continueButtonDisabled
+            styles.confirmButton,
+            !canProceed && styles.confirmButtonDisabled
           ]}
-          onPress={handleContinue}
-          disabled={!selectedLevel || isLoading}
+          onPress={handleConfirm}
+          disabled={!canProceed || isLoading}
         >
-          <Text style={styles.continueButtonText}>
-            {isLoading ? 'Saving...' : 'Continue'}
+          <Text style={[
+            styles.confirmButtonText,
+            !canProceed && styles.confirmButtonTextDisabled
+          ]}>
+            {isLoading ? 'Loading...' : 'Continue →'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -228,10 +229,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  
   navigationContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
+    paddingTop: 20,
   },
   backButton: {
     height: 56,
@@ -248,7 +251,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  continueButton: {
+  confirmButton: {
     height: 56,
     backgroundColor: '#007AFF',
     borderRadius: 16,
@@ -264,14 +267,17 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  continueButtonDisabled: {
-    backgroundColor: '#B0B0B0',
+  confirmButtonDisabled: {
+    backgroundColor: '#e1e5e9',
     shadowOpacity: 0,
   },
-  continueButtonText: {
+  confirmButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  confirmButtonTextDisabled: {
+    color: '#999999',
   },
 });
 

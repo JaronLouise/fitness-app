@@ -1,4 +1,4 @@
-// Step2Gender.jsx - Gender selection with toggle buttons
+// Step2Gender.jsx - Clean gender selection with symbols
 import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
@@ -7,7 +7,7 @@ import {
   TouchableOpacity 
 } from 'react-native';
 
-const Step2Gender = ({ onContinue, onBack, isLoading, currentStep, stepData }) => {
+const Step2Gender = ({ onUpdateData, onBack, onNext, isLoading, currentStep, stepData, canProceed }) => {
   const [selectedGender, setSelectedGender] = useState(stepData.gender || '');
 
   useEffect(() => {
@@ -19,18 +19,14 @@ const Step2Gender = ({ onContinue, onBack, isLoading, currentStep, stepData }) =
 
   const handleGenderSelect = (gender) => {
     setSelectedGender(gender);
+    // Update local state but don't save to database yet
+    onUpdateData(currentStep, { gender });
   };
 
-  const handleContinue = () => {
-    if (!selectedGender) {
-      // Show error or alert that selection is required
-      return;
+  const handleConfirm = () => {
+    if (canProceed) {
+      onNext();
     }
-    onContinue(currentStep, { gender: selectedGender });
-  };
-
-  const handleBack = () => {
-    onBack();
   };
 
   return (
@@ -51,14 +47,22 @@ const Step2Gender = ({ onContinue, onBack, isLoading, currentStep, stepData }) =
             selectedGender === 'male' && styles.genderButtonSelected
           ]}
           onPress={() => handleGenderSelect('male')}
-          activeOpacity={0.8}
+          activeOpacity={0.7}
         >
-          <Text style={[
-            styles.genderButtonText,
-            selectedGender === 'male' && styles.genderButtonTextSelected
-          ]}>
-            Male
-          </Text>
+          <View style={styles.genderContent}>
+            <Text style={[
+              styles.genderSymbol,
+              selectedGender === 'male' && styles.genderSymbolSelected
+            ]}>
+              ♂
+            </Text>
+            <Text style={[
+              styles.genderLabel,
+              selectedGender === 'male' && styles.genderLabelSelected
+            ]}>
+              Male
+            </Text>
+          </View>
           {selectedGender === 'male' && (
             <View style={styles.checkmark}>
               <Text style={styles.checkmarkText}>✓</Text>
@@ -72,14 +76,22 @@ const Step2Gender = ({ onContinue, onBack, isLoading, currentStep, stepData }) =
             selectedGender === 'female' && styles.genderButtonSelected
           ]}
           onPress={() => handleGenderSelect('female')}
-          activeOpacity={0.8}
+          activeOpacity={0.7}
         >
-          <Text style={[
-            styles.genderButtonText,
-            selectedGender === 'female' && styles.genderButtonTextSelected
-          ]}>
-            Female
-          </Text>
+          <View style={styles.genderContent}>
+            <Text style={[
+              styles.genderSymbol,
+              selectedGender === 'female' && styles.genderSymbolSelected
+            ]}>
+              ♀
+            </Text>
+            <Text style={[
+              styles.genderLabel,
+              selectedGender === 'female' && styles.genderLabelSelected
+            ]}>
+              Female
+            </Text>
+          </View>
           {selectedGender === 'female' && (
             <View style={styles.checkmark}>
               <Text style={styles.checkmarkText}>✓</Text>
@@ -88,28 +100,31 @@ const Step2Gender = ({ onContinue, onBack, isLoading, currentStep, stepData }) =
         </TouchableOpacity>
       </View>
 
-      {/* Navigation Buttons */}
-      <View style={styles.navigationContainer}>
-        {/* Back Button */}
+      {/* Navigation Controls */}
+      <View style={styles.navigation}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={handleBack}
+          onPress={onBack}
           disabled={isLoading}
+          activeOpacity={0.7}
         >
-          <Text style={styles.backButtonText}>Back</Text>
+          <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
 
-        {/* Continue Button */}
         <TouchableOpacity 
           style={[
-            styles.continueButton, 
-            (!selectedGender || isLoading) && styles.continueButtonDisabled
+            styles.nextButton,
+            !canProceed && styles.nextButtonDisabled
           ]}
-          onPress={handleContinue}
-          disabled={!selectedGender || isLoading}
+          onPress={handleConfirm}
+          disabled={!canProceed || isLoading}
+          activeOpacity={0.8}
         >
-          <Text style={styles.continueButtonText}>
-            {isLoading ? 'Saving...' : 'Continue'}
+          <Text style={[
+            styles.nextButtonText,
+            !canProceed && styles.nextButtonTextDisabled
+          ]}>
+            {isLoading ? 'Loading...' : 'Continue →'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -125,122 +140,134 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 48,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: '700',
+    color: '#1a202c',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666666',
+    color: '#4a5568',
     textAlign: 'center',
-    lineHeight: 22,
-    maxWidth: 280,
+    lineHeight: 24,
+    maxWidth: 300,
   },
   selectionContainer: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
+    gap: 16,
   },
   genderButton: {
-    height: 80,
+    height: 88,
     backgroundColor: '#ffffff',
     borderWidth: 2,
-    borderColor: '#e1e5e9',
+    borderColor: '#e2e8f0',
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   genderButtonSelected: {
     borderColor: '#007AFF',
     backgroundColor: '#f0f8ff',
+    shadowColor: '#007AFF',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  genderButtonText: {
+  genderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  genderSymbol: {
+    fontSize: 32,
+    color: '#718096',
+    marginRight: 16,
+    fontWeight: '400',
+  },
+  genderSymbolSelected: {
+    color: '#007AFF',
+  },
+  genderLabel: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#2d3748',
   },
-  genderButtonTextSelected: {
+  genderLabelSelected: {
     color: '#007AFF',
   },
   checkmark: {
-    position: 'absolute',
-    right: 20,
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
     backgroundColor: '#007AFF',
-    borderRadius: 12,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkmarkText: {
     color: '#ffffff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
-  navigationContainer: {
+  navigation: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    gap: 12,
   },
   backButton: {
-    height: 56,
-    backgroundColor: '#f8f9fa',
+    flex: 1,
+    height: 52,
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e1e5e9',
-    borderRadius: 16,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    flex: 0.48,
   },
   backButtonText: {
-    color: '#666666',
+    color: '#4a5568',
     fontSize: 16,
     fontWeight: '600',
   },
-  continueButton: {
-    height: 56,
+  nextButton: {
+    flex: 1,
+    height: 52,
     backgroundColor: '#007AFF',
-    borderRadius: 16,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    flex: 0.48,
-    shadowColor: '#007AFF',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
-  continueButtonDisabled: {
-    backgroundColor: '#B0B0B0',
-    shadowOpacity: 0,
+  nextButtonDisabled: {
+    backgroundColor: '#cbd5e0',
   },
-  continueButtonText: {
-    color: '#FFFFFF',
+  nextButtonText: {
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  nextButtonTextDisabled: {
+    color: '#a0aec0',
   },
 });
 
 export default Step2Gender;
-
-
-
-
