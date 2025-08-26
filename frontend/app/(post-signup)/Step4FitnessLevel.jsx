@@ -1,0 +1,301 @@
+// Step4FitnessLevel.jsx - Fitness level selection with confirm button
+import React, { useState, useEffect } from 'react';
+import { 
+  StyleSheet, 
+  Text, 
+  View, 
+  TouchableOpacity 
+} from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+
+const Step4FitnessLevel = ({ onUpdateData, onBack, onNext, isLoading, currentStep, stepData, canProceed }) => {
+  const [selectedLevel, setSelectedLevel] = useState(stepData.fitness_level || '');
+
+  useEffect(() => {
+    // Load existing data if available
+    if (stepData.fitness_level) {
+      setSelectedLevel(stepData.fitness_level);
+    }
+  }, [stepData]);
+
+  const fitnessLevels = [
+    { 
+      id: 'beginner', 
+      label: 'Beginner', 
+      icon: 'eco',
+      description: 'New to fitness or getting back into it'
+    },
+    { 
+      id: 'intermediate', 
+      label: 'Intermediate', 
+      icon: 'local-fire-department',
+      description: 'Regular workouts, some experience'
+    },
+    { 
+      id: 'advanced', 
+      label: 'Advanced', 
+      icon: 'fitness-center',
+      description: 'Experienced, looking for challenges'
+    }
+  ];
+
+  const handleLevelSelect = (levelId) => {
+    setSelectedLevel(levelId);
+    // Update local state but don't save to database yet
+    onUpdateData(currentStep, { fitness_level: levelId });
+  };
+
+  const handleConfirm = () => {
+    if (canProceed) {
+      onNext();
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>What's your fitness level?</Text>
+        <Text style={styles.subtitle}>
+          Choose the level that best describes your current fitness experience
+        </Text>
+      </View>
+
+      {/* Fitness Level Selection */}
+      <View style={styles.levelsContainer}>
+        {fitnessLevels.map((level) => (
+          <TouchableOpacity
+            key={level.id}
+            style={[
+              styles.levelButton,
+              selectedLevel === level.id && styles.levelButtonSelected
+            ]}
+            onPress={() => handleLevelSelect(level.id)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.levelContent}>
+              <View style={styles.levelMain}>
+                <MaterialIcons 
+                  name={level.icon} 
+                  size={24} 
+                  color={selectedLevel === level.id ? '#007AFF' : '#718096'} 
+                  style={styles.levelIcon}
+                />
+                <View style={styles.levelTextContainer}>
+                  <Text style={[
+                    styles.levelLabel,
+                    selectedLevel === level.id && styles.levelLabelSelected
+                  ]}>
+                    {level.label}
+                  </Text>
+                  <Text style={[
+                    styles.levelDescription,
+                    selectedLevel === level.id && styles.levelDescriptionSelected
+                  ]}>
+                    {level.description}
+                  </Text>
+                </View>
+              </View>
+              {selectedLevel === level.id && (
+                <View style={styles.checkmark}>
+                  <MaterialIcons name="check" size={16} color="#ffffff" />
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      
+
+      {/* Navigation Controls */}
+      <View style={styles.navigationContainer}>
+        {/* Back Button */}
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={onBack}
+          disabled={isLoading}
+        >
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
+
+        {/* Confirm Button */}
+        <TouchableOpacity 
+          style={[
+            styles.confirmButton,
+            !canProceed && styles.confirmButtonDisabled
+          ]}
+          onPress={handleConfirm}
+          disabled={!canProceed || isLoading}
+        >
+          <Text style={[
+            styles.confirmButtonText,
+            !canProceed && styles.confirmButtonTextDisabled
+          ]}>
+            {isLoading ? 'Loading...' : 'Continue →'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingBottom: 40,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 22,
+    maxWidth: 300,
+  },
+  levelsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  levelButton: {
+    height: 100,
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#e1e5e9',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    flexDirection: 'row',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  levelButtonSelected: {
+    borderColor: '#007AFF',
+    backgroundColor: '#f0f8ff',
+  },
+  levelContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+  },
+  levelMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  levelIcon: {
+    fontSize: 32,
+    marginRight: 20,
+  },
+  levelTextContainer: {
+    flex: 1,
+  },
+  levelLabel: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  levelLabelSelected: {
+    color: '#007AFF',
+  },
+  levelDescription: {
+    fontSize: 14,
+    color: '#666666',
+    lineHeight: 18,
+  },
+  levelDescriptionSelected: {
+    color: '#007AFF',
+  },
+  checkmark: {
+    width: 28,
+    height: 28,
+    backgroundColor: '#007AFF',
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  checkmarkText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  
+  navigationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  backButton: {
+    height: 56,
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#e1e5e9',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 0.48,
+  },
+  backButtonText: {
+    color: '#666666',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  confirmButton: {
+    height: 56,
+    backgroundColor: '#007AFF',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 0.48,
+    shadowColor: '#007AFF',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  confirmButtonDisabled: {
+    backgroundColor: '#e1e5e9',
+    shadowOpacity: 0,
+  },
+  confirmButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  confirmButtonTextDisabled: {
+    color: '#999999',
+  },
+});
+
+export default Step4FitnessLevel;
+
+
+
+
