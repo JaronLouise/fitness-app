@@ -6,6 +6,7 @@ import {
   View, 
   TouchableOpacity 
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const Step4FitnessLevel = ({ onUpdateData, onBack, onNext, isLoading, currentStep, stepData, canProceed }) => {
   const [selectedLevel, setSelectedLevel] = useState(stepData.fitness_level || '');
@@ -21,19 +22,19 @@ const Step4FitnessLevel = ({ onUpdateData, onBack, onNext, isLoading, currentSte
     { 
       id: 'beginner', 
       label: 'Beginner', 
-      icon: '🌱',
+      icon: 'eco',
       description: 'New to fitness or getting back into it'
     },
     { 
       id: 'intermediate', 
       label: 'Intermediate', 
-      icon: '🔥',
+      icon: 'local-fire-department',
       description: 'Regular workouts, some experience'
     },
     { 
       id: 'advanced', 
       label: 'Advanced', 
-      icon: '💪',
+      icon: 'fitness-center',
       description: 'Experienced, looking for challenges'
     }
   ];
@@ -73,27 +74,34 @@ const Step4FitnessLevel = ({ onUpdateData, onBack, onNext, isLoading, currentSte
             activeOpacity={0.8}
           >
             <View style={styles.levelContent}>
-              <Text style={styles.levelIcon}>{level.icon}</Text>
-              <View style={styles.levelTextContainer}>
-                <Text style={[
-                  styles.levelLabel,
-                  selectedLevel === level.id && styles.levelLabelSelected
-                ]}>
-                  {level.label}
-                </Text>
-                <Text style={[
-                  styles.levelDescription,
-                  selectedLevel === level.id && styles.levelDescriptionSelected
-                ]}>
-                  {level.description}
-                </Text>
+              <View style={styles.levelMain}>
+                <MaterialIcons 
+                  name={level.icon} 
+                  size={24} 
+                  color={selectedLevel === level.id ? '#007AFF' : '#718096'} 
+                  style={styles.levelIcon}
+                />
+                <View style={styles.levelTextContainer}>
+                  <Text style={[
+                    styles.levelLabel,
+                    selectedLevel === level.id && styles.levelLabelSelected
+                  ]}>
+                    {level.label}
+                  </Text>
+                  <Text style={[
+                    styles.levelDescription,
+                    selectedLevel === level.id && styles.levelDescriptionSelected
+                  ]}>
+                    {level.description}
+                  </Text>
+                </View>
               </View>
+              {selectedLevel === level.id && (
+                <View style={styles.checkmark}>
+                  <MaterialIcons name="check" size={16} color="#ffffff" />
+                </View>
+              )}
             </View>
-            {selectedLevel === level.id && (
-              <View style={styles.checkmark}>
-                <Text style={styles.checkmarkText}>✓</Text>
-              </View>
-            )}
           </TouchableOpacity>
         ))}
       </View>
@@ -188,7 +196,13 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
+  },
+  levelMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   levelIcon: {
     fontSize: 32,
@@ -215,14 +229,13 @@ const styles = StyleSheet.create({
     color: '#007AFF',
   },
   checkmark: {
-    position: 'absolute',
-    right: 20,
     width: 28,
     height: 28,
     backgroundColor: '#007AFF',
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: 12,
   },
   checkmarkText: {
     color: '#ffffff',

@@ -7,6 +7,13 @@ import {
   TouchableOpacity,
   ScrollView
 } from 'react-native';
+import { 
+  MaterialIcons, 
+  Ionicons, 
+  MaterialCommunityIcons,
+  FontAwesome5,
+  AntDesign
+} from '@expo/vector-icons';
 
 const Step5MealPlan = ({ onUpdateData, onBack, onNext, isLoading, currentStep, stepData, canProceed }) => {
   const [selectedMealPlan, setSelectedMealPlan] = useState(stepData.meal_plan || '');
@@ -19,14 +26,76 @@ const Step5MealPlan = ({ onUpdateData, onBack, onNext, isLoading, currentStep, s
   }, [stepData]);
 
   const mealPlans = [
-    { id: 'balanced_diet', label: 'Balanced Diet', icon: '🥗', description: 'Well-rounded nutrition for overall health' },
-    { id: 'high_protein', label: 'High Protein', icon: '🥩', description: 'Protein-focused for muscle building' },
-    { id: 'low_carb', label: 'Low Carb', icon: '🥑', description: 'Reduced carbs for weight management' },
-    { id: 'intermittent_fasting', label: 'Intermittent Fasting', icon: '⏰', description: 'Time-restricted eating windows' },
-    { id: 'mediterranean', label: 'Mediterranean', icon: '🫒', description: 'Heart-healthy Mediterranean foods' },
-    { id: 'plant_based', label: 'Plant-Based', icon: '🌱', description: 'Vegetarian and vegan options' },
-    { id: 'keto', label: 'Ketogenic', icon: '🧈', description: 'High-fat, very low-carb approach' }
+    { 
+      id: 'balanced_diet', 
+      label: 'Balanced Diet', 
+      icon: 'restaurant', 
+      iconFamily: 'MaterialIcons',
+      description: 'Well-rounded nutrition for overall health' 
+    },
+    { 
+      id: 'nutrition', 
+      label: 'High Protein', 
+      icon: 'food-steak', 
+      iconFamily: 'MaterialCommunityIcons',
+      description: 'Protein-focused for muscle building' 
+    },
+    { 
+      id: 'low_carb', 
+      label: 'Low Carb', 
+      icon: 'leaf', 
+      iconFamily: 'MaterialCommunityIcons',
+      description: 'Reduced carbs for weight management' 
+    },
+    { 
+      id: 'intermittent_fasting', 
+      label: 'Intermittent Fasting', 
+      icon: 'clock-outline', 
+      iconFamily: 'MaterialCommunityIcons',
+      description: 'Time-restricted eating windows' 
+    },
+    { 
+      id: 'mediterranean', 
+      label: 'Mediterranean', 
+      icon: 'fruit-watermelon', 
+      iconFamily: 'MaterialCommunityIcons',
+      description: 'Heart-healthy Mediterranean foods' 
+    },
+    { 
+      id: 'plant_based', 
+      label: 'Plant-Based', 
+      icon: 'sprout', 
+      iconFamily: 'MaterialCommunityIcons',
+      description: 'Vegetarian and vegan options' 
+    },
+    { 
+      id: 'keto', 
+      label: 'Ketogenic', 
+      icon: 'fire', 
+      iconFamily: 'FontAwesome5',
+      description: 'High-fat, very low-carb approach' 
+    }
   ];
+
+  // Helper function to render the appropriate icon
+  const renderIcon = (iconName, iconFamily, size, color, style) => {
+    const iconProps = { name: iconName, size, color, style };
+    
+    switch (iconFamily) {
+      case 'MaterialIcons':
+        return <MaterialIcons {...iconProps} />;
+      case 'Ionicons':
+        return <Ionicons {...iconProps} />;
+      case 'MaterialCommunityIcons':
+        return <MaterialCommunityIcons {...iconProps} />;
+      case 'FontAwesome5':
+        return <FontAwesome5 {...iconProps} />;
+      case 'AntDesign':
+        return <AntDesign {...iconProps} />;
+      default:
+        return <MaterialIcons {...iconProps} />;
+    }
+  };
 
   const handleMealPlanSelect = (planId) => {
     setSelectedMealPlan(planId);
@@ -72,12 +141,7 @@ const Step5MealPlan = ({ onUpdateData, onBack, onNext, isLoading, currentStep, s
           >
             <View style={styles.planContent}>
               <View style={styles.planMain}>
-                <Text style={[
-                  styles.planIcon,
-                  selectedMealPlan === plan.id && styles.planIconSelected
-                ]}>
-                  {plan.icon}
-                </Text>
+                {renderIcon(plan.icon, plan.iconFamily, 24, selectedMealPlan === plan.id ? '#007AFF' : '#718096', styles.planIcon)}
                 <View style={styles.planText}>
                   <Text style={[
                     styles.planLabel,
@@ -95,7 +159,7 @@ const Step5MealPlan = ({ onUpdateData, onBack, onNext, isLoading, currentStep, s
               </View>
               {selectedMealPlan === plan.id && (
                 <View style={styles.checkmark}>
-                  <Text style={styles.checkmarkText}>✓</Text>
+                  <MaterialIcons name="check" size={16} color="#ffffff" />
                 </View>
               )}
             </View>

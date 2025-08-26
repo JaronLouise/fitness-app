@@ -6,6 +6,7 @@ import {
   View, 
   TouchableOpacity 
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const Step2Gender = ({ onUpdateData, onBack, onNext, isLoading, currentStep, stepData, canProceed }) => {
   const [selectedGender, setSelectedGender] = useState(stepData.gender || '');
@@ -50,12 +51,12 @@ const Step2Gender = ({ onUpdateData, onBack, onNext, isLoading, currentStep, ste
           activeOpacity={0.7}
         >
           <View style={styles.genderContent}>
-            <Text style={[
-              styles.genderSymbol,
-              selectedGender === 'male' && styles.genderSymbolSelected
-            ]}>
-              ♂
-            </Text>
+            <MaterialIcons 
+              name="male" 
+              size={32} 
+              color={selectedGender === 'male' ? '#007AFF' : '#718096'} 
+              style={styles.genderSymbol}
+            />
             <Text style={[
               styles.genderLabel,
               selectedGender === 'male' && styles.genderLabelSelected
@@ -65,7 +66,7 @@ const Step2Gender = ({ onUpdateData, onBack, onNext, isLoading, currentStep, ste
           </View>
           {selectedGender === 'male' && (
             <View style={styles.checkmark}>
-              <Text style={styles.checkmarkText}>✓</Text>
+              <MaterialIcons name="check" size={16} color="#ffffff" />
             </View>
           )}
         </TouchableOpacity>
@@ -79,12 +80,12 @@ const Step2Gender = ({ onUpdateData, onBack, onNext, isLoading, currentStep, ste
           activeOpacity={0.7}
         >
           <View style={styles.genderContent}>
-            <Text style={[
-              styles.genderSymbol,
-              selectedGender === 'female' && styles.genderSymbolSelected
-            ]}>
-              ♀
-            </Text>
+            <MaterialIcons 
+              name="female" 
+              size={32} 
+              color={selectedGender === 'female' ? '#007AFF' : '#718096'} 
+              style={styles.genderSymbol}
+            />
             <Text style={[
               styles.genderLabel,
               selectedGender === 'female' && styles.genderLabelSelected
@@ -94,7 +95,7 @@ const Step2Gender = ({ onUpdateData, onBack, onNext, isLoading, currentStep, ste
           </View>
           {selectedGender === 'female' && (
             <View style={styles.checkmark}>
-              <Text style={styles.checkmarkText}>✓</Text>
+              <MaterialIcons name="check" size={16} color="#ffffff" />
             </View>
           )}
         </TouchableOpacity>

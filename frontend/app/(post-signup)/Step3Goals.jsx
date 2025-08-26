@@ -6,6 +6,12 @@ import {
   View, 
   TouchableOpacity 
 } from 'react-native';
+import { 
+  MaterialIcons, 
+  Ionicons, 
+  MaterialCommunityIcons,
+  FontAwesome5
+} from '@expo/vector-icons';
 
 const Step3Goals = ({ onUpdateData, onBack, onNext, isLoading, currentStep, stepData, canProceed }) => {
   const [selectedGoals, setSelectedGoals] = useState(stepData.goals || []);
@@ -18,11 +24,29 @@ const Step3Goals = ({ onUpdateData, onBack, onNext, isLoading, currentStep, step
   }, [stepData]);
 
   const goals = [
-    { id: 'lose_weight', label: 'Lose Weight', icon: '⚖️', description: 'Burn fat and reach your target weight' },
-    { id: 'gain_muscle', label: 'Build Muscle', icon: '💪', description: 'Increase strength and muscle mass' },
-    { id: 'improve_health', label: 'Improve Health', icon: '❤️', description: 'Boost overall wellness and energy' },
-    { id: 'get_in_shape', label: 'Get in Shape', icon: '🏃', description: 'Enhance fitness and endurance' }
+    { id: 'lose_weight', label: 'Lose Weight', icon: 'balance', iconFamily: 'MaterialIcons', description: 'Burn fat and reach your target weight' },
+    { id: 'gain_muscle', label: 'Build Muscle', icon: 'fitness-center', iconFamily: 'MaterialIcons', description: 'Increase strength and muscle mass' },
+    { id: 'improve_health', label: 'Improve Health', icon: 'heart', iconFamily: 'Ionicons', description: 'Boost overall wellness and energy' },
+    { id: 'get_in_shape', label: 'Get in Shape', icon: 'run', iconFamily: 'MaterialCommunityIcons', description: 'Enhance fitness and endurance' }
   ];
+
+  // Helper function to render the appropriate icon
+  const renderIcon = (iconName, iconFamily, size, color, style) => {
+    const iconProps = { name: iconName, size, color, style };
+    
+    switch (iconFamily) {
+      case 'MaterialIcons':
+        return <MaterialIcons {...iconProps} />;
+      case 'Ionicons':
+        return <Ionicons {...iconProps} />;
+      case 'MaterialCommunityIcons':
+        return <MaterialCommunityIcons {...iconProps} />;
+      case 'FontAwesome5':
+        return <FontAwesome5 {...iconProps} />;
+      default:
+        return <MaterialIcons {...iconProps} />;
+    }
+  };
 
   const handleGoalToggle = (goalId) => {
     const newGoals = selectedGoals.includes(goalId) 
@@ -65,12 +89,7 @@ const Step3Goals = ({ onUpdateData, onBack, onNext, isLoading, currentStep, step
           >
             <View style={styles.goalContent}>
               <View style={styles.goalMain}>
-                <Text style={[
-                  styles.goalIcon,
-                  selectedGoals.includes(goal.id) && styles.goalIconSelected
-                ]}>
-                  {goal.icon}
-                </Text>
+                {renderIcon(goal.icon, goal.iconFamily, 24, selectedGoals.includes(goal.id) ? '#007AFF' : '#718096', styles.goalIcon)}
                 <View style={styles.goalText}>
                   <Text style={[
                     styles.goalLabel,
@@ -88,7 +107,7 @@ const Step3Goals = ({ onUpdateData, onBack, onNext, isLoading, currentStep, step
               </View>
               {selectedGoals.includes(goal.id) && (
                 <View style={styles.checkmark}>
-                  <Text style={styles.checkmarkText}>✓</Text>
+                  <MaterialIcons name="check" size={16} color="#ffffff" />
                 </View>
               )}
             </View>

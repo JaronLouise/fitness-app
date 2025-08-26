@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
@@ -16,7 +17,7 @@ const Step1Welcome = ({ onNext, onBack, canProceed, currentStep, isLoading }) =>
       {/* Welcome Content */}
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Text style={styles.icon}>🎯</Text>
+          <MaterialIcons name="fitness-center" size={32} color="#007AFF" /> 
         </View>
         
         <Text style={styles.title}>
@@ -30,15 +31,15 @@ const Step1Welcome = ({ onNext, onBack, canProceed, currentStep, isLoading }) =>
         
         <View style={styles.features}>
           <View style={styles.feature}>
-            <Text style={styles.featureIcon}>✨</Text>
+            <MaterialIcons name="handyman" size={16} color="#007AFF" style={styles.featureIcon} />
             <Text style={styles.featureText}>Personalized workout plans</Text>
           </View>
           <View style={styles.feature}>
-            <Text style={styles.featureIcon}>📊</Text>
+            <MaterialIcons name="analytics" size={16} color="#007AFF" style={styles.featureIcon} />
             <Text style={styles.featureText}>Progress tracking & analytics</Text>
           </View>
           <View style={styles.feature}>
-            <Text style={styles.featureIcon}>🍎</Text>
+            <MaterialIcons name="dining" size={16} color="#007AFF" style={styles.featureIcon} />
             <Text style={styles.featureText}>Custom nutrition guidance</Text>
           </View>
         </View>
